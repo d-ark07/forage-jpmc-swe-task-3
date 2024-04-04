@@ -1,0 +1,110 @@
+From 5772926bd87cd797e67c36b67b37eaf13eceb11c Mon Sep 17 00:00:00 2001
+From: d-ark07 <y.yadav2002@gmail.com>
+Date: Thu, 4 Apr 2024 20:19:21 +0530
+Subject: [PATCH] bug fix
+
+---
+ src/Graph.tsx | 61 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 36 insertions(+), 25 deletions(-)
+
+diff --git a/src/Graph.tsx b/src/Graph.tsx
+index 277797d..f02ae6a 100644
+--- a/src/Graph.tsx
++++ b/src/Graph.tsx
+@@ -1,32 +1,37 @@
+-import React, { Component } from 'react';
+-import { Table } from '@finos/perspective';
+-import { ServerRespond } from './DataStreamer';
+-import { DataManipulator } from './DataManipulator';
+-import './Graph.css';
++import React, { Component } from "react";
++import { Table } from "@finos/perspective";
++import { ServerRespond } from "./DataStreamer";
++import { DataManipulator } from "./DataManipulator";
++import "./Graph.css";
+ 
+ interface IProps {
+-  data: ServerRespond[],
++  data: ServerRespond[];
+ }
+ 
+ interface PerspectiveViewerElement extends HTMLElement {
+-  load: (table: Table) => void,
++  load: (table: Table) => void;
+ }
+ class Graph extends Component<IProps, {}> {
+   table: Table | undefined;
+ 
+   render() {
+-    return React.createElement('perspective-viewer');
++    return React.createElement("perspective-viewer");
+   }
+ 
+   componentDidMount() {
+     // Get element from the DOM.
+-    const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
++    const elem = (document.getElementsByTagName(
++      "perspective-viewer"
++    )[0] as unknown) as PerspectiveViewerElement;
+ 
+     const schema = {
+-      stock: 'string',
+-      top_ask_price: 'float',
+-      top_bid_price: 'float',
+-      timestamp: 'date',
++      stock: "string",
++      top_ask_price: "float",
++      top_bid_price: "float",
++      timestamp: "date",
++      upper_bound: "float",
++      lower_bound: "float",
++      trigger_alert: "float",
+     };
+ 
+     if (window.perspective && window.perspective.worker()) {
+@@ -35,24 +40,30 @@ class Graph extends Component<IProps, {}> {
+     if (this.table) {
+       // Load the `table` in the `<perspective-viewer>` DOM reference.
+       elem.load(this.table);
+-      elem.setAttribute('view', 'y_line');
+-      elem.setAttribute('column-pivots', '["stock"]');
+-      elem.setAttribute('row-pivots', '["timestamp"]');
+-      elem.setAttribute('columns', '["top_ask_price"]');
+-      elem.setAttribute('aggregates', JSON.stringify({
+-        stock: 'distinctcount',
+-        top_ask_price: 'avg',
+-        top_bid_price: 'avg',
+-        timestamp: 'distinct count',
+-      }));
++      elem.setAttribute("view", "y_line");
++      elem.setAttribute("column-pivots", '["stock"]');
++      elem.setAttribute("row-pivots", '["timestamp"]');
++      elem.setAttribute("columns", '["top_ask_price"]');
++      elem.setAttribute(
++        "aggregates",
++        JSON.stringify({
++          stock: "distinctcount",
++          top_ask_price: "avg",
++          top_bid_price: "avg",
++          timestamp: "distinct count",
++          upper_bound: "avg",
++          lower_bound: "avg",
++          trigger_alert: "avg",
++        })
++      );
+     }
+   }
+ 
+   componentDidUpdate() {
+     if (this.table) {
+-      this.table.update(
++      this.table.update(([
+         DataManipulator.generateRow(this.props.data),
+-      );
++      ] as unknown) as TableData);
+     }
+   }
+ }
+-- 
+2.44.0.windows.1
+
